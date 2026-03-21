@@ -1,0 +1,79 @@
+name: Manual Build and Artifact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Yoctoビルドは数時間かかる場合があるため、タイムアウトを長めに設定（任意）
+    timeout-minutes: 360
+
+    env:
+      MACHINE: "qemux86-64"
+      IMAGE: "virtio-image"
+    
+    steps:
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      - name: Update submodules to branch heads
+        # .gitmodules の branch 設定に従って最新を fetch してチェックアウトする
+        run: |
+          git submodule update --remote --recursive
+          # 状態確認（どのコミットを指しているかログに残す）
+          git submodule status
+
+        # 2. GitHub Runner の空き容量を最大化する（Yoctoビルドには必須級）
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false # 4.7 GiB
+          docker-images: false # 1.8GiB
+          swap-storage: false # 0
+      # Yocto ビルドに必要なホストツールをインストール
+      - name: Install required host tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chrpath diffstat build-essential python3-pip \
+                                 gawk wget git diffstat unzip texinfo gcc-multilib \
+                                 socat libsdl1.2-dev xterm zstd liblz4-tool
+
+      - name: Disable Unprivileged User Namespace Restrictions
+        run: |
+          # Ubuntu 24.04 の制限を一時的に解除する
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Inject rm_work to local.conf
+        run: |
+          CONF_FILE="build/conf/local.conf"
+          if [ -f "$CONF_FILE" ]; then
+            echo 'INHERIT += "rm_work"' >> "$CONF_FILE"
+            echo "Injected rm_work to $CONF_FILE"
+          fi
+
+      - name: Run build
+        run: |
+          set +u
+          SCRIPT_DIR=$(pwd)
+          TEMPLATECONF=$SCRIPT_DIR/meta-yocto/meta-poky/conf/templates/default
+          source $SCRIPT_DIR/openembedded-core/oe-init-build-env
+          bitbake -u teamcity "${{ env.IMAGE }}"
+
+
+        # 4. 生成物を Artifact としてアップロード
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.IMAGE }}-${{ env.MACHINE }}-${{ github.sha }}
+          path: |
+            build/tmp/deploy/images/${{ env.MACHINE }}/bzImage-${{ env.MACHINE }}.bin
+            build/tmp/deploy/images/${{ env.MACHINE }}/${{ env.IMAGE }}-${{ env.MACHINE }}.rootfs.ext4
+          overwrite: false
