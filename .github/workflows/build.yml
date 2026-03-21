@@ -1,0 +1,35 @@
+name: Manual Build and Artifact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      DISTRO: "oe-nodistro-whinlatter"
+      MACHINE: "qemux86-64"
+      IMAGE: "virtio-image"
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Make run.sh executable
+        run: chmod +x ./run.sh
+
+      - name: Run build script
+        run: ./run.sh build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IMAGE }}-${{ env.MACHINE }}-output
+          path: |
+            build/virtio-image/${{ env.DISTRO }}/build/tmp/deploy/images/${{ env.MACHINE }}/bzImage-${{ env.MACHINE }}.bin
+            build/virtio-image/${{ env.DISTRO }}/build/tmp/deploy/images/${{ env.MACHINE }}/${{ env.IMAGE }}-${{ env.MACHINE }}.rootfs.ext4
+          retention-days: 5
