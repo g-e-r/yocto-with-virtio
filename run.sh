@@ -11,7 +11,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DISTRO="oe-nodistro-whinlatter"
-BUILD_DIR="$SCRIPT_DIR/build/virtio-image/$DISTRO/build"
+BUILD_DIR="$SCRIPT_DIR/build"
 MACHINE="qemux86-64"
 IMAGE="virtio-image"
 SERIAL_PTY="/tmp/qemu-serial.pty"
