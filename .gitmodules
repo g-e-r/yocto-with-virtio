@@ -1,8 +1,16 @@
 [submodule "bitbake"]
 	path = bitbake
 	url = https://git.openembedded.org/bitbake
-	branch = 2025-10.2-whinlatter
+	branch = 2.16
 [submodule "meta-openembedded"]
 	path = meta-openembedded
 	url = https://github.com/openembedded/meta-openembedded.git
+	branch = whinlatter
+[submodule "openembedded-core"]
+	path = openembedded-core
+	url = https://git.openembedded.org/openembedded-core
+	branch = whinlatter
+[submodule "meta-yocto"]
+	path = meta-yocto
+	url = https://git.yoctoproject.org/meta-yocto
 	branch = whinlatter

@@ -14,7 +14,7 @@ inherit core-image
 
 IMAGE_INSTALL:append = "\
     packagegroup-core-boot \
-    packagegroup-core-full-cmdline \
+    packagegroup-core-full-cmdline-utils \
     "
 
 IMAGE_INSTALL:append = " \

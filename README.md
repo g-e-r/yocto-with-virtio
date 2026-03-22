@@ -11,6 +11,10 @@
 ```text
 .
 ├── run.sh                                      # ビルドおよび実行用メインスクリプト
+├── build/
+│   └── conf/
+│       ├── bblayers.conf                       # レイヤー定義ファイル
+│       └── local.conf                          # ビルド設定ファイル
 ├── meta-virtio-py/                             # カスタムYoctoレイヤー
 │   └── recipes-python/
 │       └── python-app/
@@ -22,10 +26,8 @@
 
 ## 開発者向けガイド: Yoctoビルド構造について
 
-Yocto Project (Poky) の構造に詳しくないエンジニア向けの解説です。
-
 *   **Poky**: Yoctoのコアビルドシステムです。このリポジトリには含まれていないため、詳細は　https://docs.yoctoproject.org/bitbake/bitbake-user-manual/ を確認してください。
-*   **Build Directory (`build/`)**: `run.sh` を実行すると自動的に生成されます。コンパイルされたバイナリや最終的なディスクイメージがここに格納されます。Git管理外のディレクトリです。
+*   **Build Directory (`build/`)**: `run.sh build` を実行すると中身が自動的に生成されます。コンパイルされたバイナリや最終的なディスクイメージがここに格納されます。`build/conf/` 内の設定ファイル（`bblayers.conf`, `local.conf`）以外はGit管理外のディレクトリです。
 *   **BitBake**: ビルドを実行するタスクランナーです。`run.sh build` は内部でBitBake環境をセットアップしてからイメージをビルドします。
 *   **Recipes**: `meta-virtio-py` 内にあるレシピファイル（.bb）は、新しいソフトウェア（ここでは `app.py`）をシステムに追加する方法を定義しています。
 
@@ -49,7 +51,6 @@ Yoctoビルドを実行します。
 
 このコマンドは以下の処理を行います：
 *   ビルド環境の初期化
-*   レイヤー設定の更新
 *   `bitbake virtio-image` の実行
 
 ### 2. QEMUでの実行
@@ -58,9 +59,6 @@ Yoctoビルドを実行します。
 ./run.sh run
 ```
 
-
 ビルドされたイメージをQEMUで起動し、同時にvhost-userデーモン（I2C/GPIOシミュレータ）をバックグラウンドで立ち上げます。
 アプリケーションはinit.dによりシステム起動時に自動で開始します。
 起動と終了は/etc/init.d/python-appを使います。
-
-

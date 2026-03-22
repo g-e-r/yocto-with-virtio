@@ -30,15 +30,11 @@ require() { command -v "$1" &>/dev/null || die "'$1' not found. Install it first
 # ── build ─────────────────────────────────────────────────────────────────────
 
 cmd_build() {
-    [[ -d $BUILD_DIR ]] || $SCRIPT_DIR/bitbake/bin/bitbake-setup \
-      --setting default top-dir-prefix $SCRIPT_DIR/build \
-      --setting default top-dir-name virtio-image init \
-      --non-interactive $DISTRO nodistro machine/qemux86-64
     set +u
-    source $BUILD_DIR/init-build-env
-    cd $SCRIPT_DIR
-    bitbake-layers add-layer meta-virtio-py
-    bitbake-layers add-layer meta-openembedded/meta-oe
+    TEMPLATECONF=$SCRIPT_DIR/meta-yocto/meta-poky/conf/templates/default
+    source $SCRIPT_DIR/openembedded-core/oe-init-build-env
+    export BB_NUMBER_THREADS="8"
+    export PARALLEL_MAKE="-j 8"
     bitbake "$IMAGE"
 }
 
